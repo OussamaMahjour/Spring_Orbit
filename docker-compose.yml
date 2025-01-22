@@ -1,0 +1,340 @@
+services:
+
+
+
+  user-service:
+    container_name: user-service
+    build:
+      context: ./user-service 
+      dockerfile: ../docker/spring-boot/Dockerfile
+    # volumes:
+    #   - ./user-service:/app
+    ports:
+      - 8090:8080
+    healthcheck:
+      test: [ "CMD","curl","-f", "http://localhost:8080/actuator/health" ]
+      interval:  15s
+      retries:  6
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery-service:8080/eureka
+      - CONFIG_SERVICE_URL=http://config-service:8080
+    depends_on:
+      config-service:
+        condition: service_healthy
+      user-db:
+        condition: service_started
+
+  user-db:
+    container_name: user-db
+    image: postgres:17
+    volumes:
+      - ./storage/user-db:/var/lib/postgresql/data
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: root
+      POSTGRES_USER: postgres
+      POSTGRES_DB: user_service_db
+    ports:
+      - "5432:5432"
+    
+
+
+
+#  authentification-service:
+#    container_name: authentification-service
+#    build:
+#      context: ./authentification-service
+#      dockerfile: ../docker/spring-boot/Dockerfile
+#    # volumes:
+#    #   - ./authentification-service:/app
+#    ports:
+#      - 8081:8080
+#    healthcheck:
+#      test: [ "CMD","curl","-f", "http://localhost:8081/actuator/health" ]
+#      interval:  10s
+#      retries:  4
+#
+#    depends_on:
+#      - authentification-db
+
+
+#  authentification-db:
+#    container_name: authentification-db
+#    image: redis:7.4.1-alpine
+#    ports:
+#      - "6379:6379"
+#    volumes:
+#      - ./storage/authentification-db:/data
+#    restart: always
+    
+
+  discovery-service:
+    container_name: discovery-service
+    build:
+      context: ./discovery-service 
+      dockerfile: ../docker/spring-boot/Dockerfile
+    # volumes:
+    #   - ./discovery-service:/app
+    ports:
+      - 8082:8080
+    expose:
+      - 8080
+    healthcheck:
+      test: [ "CMD","curl","-f", "http://localhost:8080/actuator/health" ]
+      interval:  15s
+      retries:  6
+
+
+
+  config-service:
+    container_name: config-service
+    build:
+      context: ./config-service 
+      dockerfile: ../docker/spring-boot/Dockerfile
+    # volumes:
+    #   - ./config-service:/app
+    ports:
+      - 8083:8080
+    expose:
+      - 8080
+    healthcheck:
+      test: [ "CMD","curl","-f", "http://localhost:8080/actuator/health" ]
+      interval:  15s
+      retries:  6
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery-service:8080/eureka
+    depends_on:
+        discovery-service:
+          condition: service_healthy
+
+
+
+  gateway-service:
+    container_name: gateway-service
+    build:
+      context: ./gateway-service 
+      dockerfile: ../docker/spring-boot/Dockerfile
+    # volumes:
+    #   - ./gateway-service:/app
+    ports:
+      - 8084:8080
+    expose:
+      -  8080
+    healthcheck:
+      test: [ "CMD","curl","-f", "http://localhost:8080/actuator/health" ]
+      interval:  10s
+      retries:  4
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery-service:8080/eureka
+      - CONFIG_SERVICE_URL=http://config-service:8080
+    depends_on:
+        comment-service:
+          condition: service_healthy
+
+
+
+  comment-service:
+    container_name: comment-service
+    build:
+      context: ./comment-service 
+      dockerfile: ../docker/spring-boot/Dockerfile
+    # volumes:
+    #   - ./comment-service:/app
+    ports:
+      - 8085:8080
+    expose:
+      - 8080
+    healthcheck:
+      test: [ "CMD","curl","-f", "http://localhost:8080/actuator/health" ]
+      interval:  10s
+      retries:  4
+
+    environment:
+        - DISCOVERY_SERVICE_URL=http://discovery-service:8080/eureka
+        - CONFIG_SERVICE_URL=http://config-service:8080
+    depends_on:
+        config-service:
+            condition: service_healthy
+        comment-db:
+          condition: service_started
+
+    
+  comment-db:
+    image: mongo:7.0.5
+    container_name: comment-db
+    volumes:
+      - ./storage/comment-db:/data/db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: comment
+    ports:
+      - "27010:27017"
+    
+
+
+
+  notification-service:
+    container_name: notification-service
+    build:
+      context: ./notification-service
+      dockerfile: ../docker/spring-boot/Dockerfile
+    # volumes:
+    #   - ./notification-service:/app
+    ports:
+      - 8086:8080
+    healthcheck:
+      test: [ "CMD","curl","-f", "http://localhost:8080/actuator/health" ]
+      interval:  10s
+      retries:  4
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery-service:8080/eureka
+      - CONFIG_SERVICE_URL=http://config-service:8080
+    depends_on:
+      notification-db:
+        condition: service_started
+      kafka-service:
+        condition: service_started
+      config-service:
+        condition: service_healthy
+
+  notification-db:
+    image: mongo:7.0.5
+    container_name: notification-db
+    volumes:
+      - ./storage/notification-db:/data/db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: notification
+    ports:
+      - "27018:27017"
+    expose:
+      - "27017"
+
+  kafka-service:
+    container_name: kafka-service
+    image: apache/kafka:3.9.0
+    hostname: kafka-service
+    environment:
+      KAFKA_KRAFT_MODE: "true"  # This enables KRaft mode in Kafka.
+      KAFKA_PROCESS_ROLES: controller,broker  # Kafka acts as both broker and controller.
+      KAFKA_NODE_ID: 1  # A unique ID for this Kafka instance.
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka-service:9093"  # Defines the controller voters.
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-service:9092
+      KAFKA_LOG_DIRS: /var/lib/kafka/data  # Where Kafka stores its logs.
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"  # Kafka will automatically create topics if needed.
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # Since we’re running one broker, one replica is enough.
+      KAFKA_LOG_RETENTION_HOURS: 168  # Keep logs for 7 days.
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0  # No delay for consumer rebalancing.
+
+
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    expose:
+      - "9092"
+      - "9093"
+
+
+
+
+#  post-service:
+#    container_name: post-service
+#    build:
+#      context: ./post-service
+#      dockerfile: ../docker/spring-boot/Dockerfile
+#    # volumes:
+#    #   - ./post-service:/app
+#    ports:
+#      - 8087:8080
+#    healthcheck:
+#      test: [ "CMD","curl","-f", "http://localhost:8087/actuator/health" ]
+#      interval:  10s
+#      retries:  4
+#    depends_on:
+#      - post-db
+#
+#  post-db:
+#    image: mvertes/alpine-mongo
+#    container_name: post-db
+#    volumes:
+#      - ./storage/post-db:/data/db
+#    restart: always
+#    environment:
+#      MONGO_INITDB_ROOT_PASSWORD: root
+#    ports:
+#      - "27017:27017"
+#
+
+
+#  security-service:
+#    container_name: security-service
+#    build:
+#      context: ./security-service
+#      dockerfile: ../docker/spring-boot/Dockerfile
+#    # volumes:
+#    #   - ./security-service:/app
+#    ports:
+#      - 8088:8080
+#    healthcheck:
+#      test: [ "CMD","curl","-f", "http://localhost:8088/actuator/health" ]
+#      interval:  10s
+#      retries:  4
+
+
+  media-service:
+    container_name: media-service
+    build:
+      context: ./media-service 
+      dockerfile: ../docker/spring-boot/Dockerfile
+    volumes:
+      - ./storage/media-storage:/media/storage
+    ports:
+      - 8089:8080
+    healthcheck:
+      test: [ "CMD","curl","-f", "http://localhost:8080/actuator/health" ]
+      interval:  10s
+      retries: 4
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery-service:8080/eureka
+      - CONFIG_SERVICE_URL=http://config-service:8080
+    depends_on:
+      config-service:
+        condition: service_healthy
+      media-db:
+        condition: service_started
+
+
+  media-db:
+    image: mongo:7.0.5
+    container_name: media-db
+    volumes:
+      - ./storage/media-db:/data/db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: media
+    ports:
+      - "27017:27017"
+    expose:
+      - "27017"
+  
+#  client:
+#    container_name: client
+#    build:
+#      context: ./client
+#      dockerfile: ../docker/react/Dockerfile
+#    volumes:
+#      - ./client:/app
+#    ports:
+#      - 8080:8080
+    
+
