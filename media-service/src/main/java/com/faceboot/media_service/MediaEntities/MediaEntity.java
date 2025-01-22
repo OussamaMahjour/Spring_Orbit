@@ -17,12 +17,12 @@ public class MediaEntity {
     @Id
     private String id;
     private String postId;
-    private MediaType type;
+    private MediaTypeEnum type;
     private String content;
     private String path;
 
     @Builder
-    public MediaEntity(String postId, MediaType type, String content, String path) {
+    public MediaEntity(String postId, MediaTypeEnum type, String content, String path) {
         this.id = UUID.randomUUID().toString();
         this.postId = postId;
         this.type = type;
@@ -30,6 +30,7 @@ public class MediaEntity {
         this.path = path;
 
     }
+
     public MediaEntity() {
         this.id = UUID.randomUUID().toString();
     }

@@ -1,9 +1,7 @@
 package com.faceboot.media_service.MediaDTO;
 
-import com.faceboot.media_service.MediaEntities.MediaType;
+import com.faceboot.media_service.MediaEntities.MediaTypeEnum;
 import lombok.*;
-
-import java.util.UUID;
 
 
 @AllArgsConstructor
@@ -14,7 +12,7 @@ import java.util.UUID;
 @ToString
 public class MediaRequestDTO {
     private String postId;
-    private MediaType type;
+    private MediaTypeEnum type;
     private String content;
     private String path;
 }

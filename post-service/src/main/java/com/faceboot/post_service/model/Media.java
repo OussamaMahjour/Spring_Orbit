@@ -1,8 +1,6 @@
-package com.faceboot.media_service.MediaDTO;
+package com.faceboot.post_service.model;
 
-import com.faceboot.media_service.MediaEntities.MediaTypeEnum;
 import lombok.*;
-
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -10,10 +8,10 @@ import lombok.*;
 @Getter
 @Builder
 @ToString
-public class MediaResponseDTO {
+public class Media {
     private String id;
     private String postId;
-    private MediaTypeEnum type;
+    private String type;
     private String content;
     private String path;
 }

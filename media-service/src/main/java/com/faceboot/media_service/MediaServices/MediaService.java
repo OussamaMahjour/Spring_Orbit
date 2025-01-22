@@ -1,23 +1,32 @@
 package com.faceboot.media_service.MediaServices;
 
-import com.faceboot.media_service.MediaDTO.MediaRequestDTO;
 import com.faceboot.media_service.MediaDTO.MediaResponseDTO;
 import com.faceboot.media_service.MediaEntities.MediaEntity;
-import com.faceboot.media_service.MediaEntities.MediaType;
+import com.faceboot.media_service.MediaEntities.MediaTypeEnum;
 import com.faceboot.media_service.MediaMapper.MediaMapperInterface;
 import com.faceboot.media_service.MediaRepositories.MediaRepository;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Service
 public class MediaService implements MediaServiceInterface {
@@ -37,7 +46,14 @@ public class MediaService implements MediaServiceInterface {
         for (MediaEntity mediaEntity : mediaList) {
             mediaResponseDTOList.add(Optional.ofNullable(mediaMapper.toMediaResponseDTO(mediaEntity)));
         }
+        System.out.println("helooooooooo");
         return mediaResponseDTOList;
+    }
+
+    @Override
+    public Optional<MediaResponseDTO> findById(String id) {
+        MediaEntity mediaEntity = mediaRepository.findById(id).orElse(null);
+        return Optional.ofNullable(mediaMapper.toMediaResponseDTO(mediaEntity));
     }
 
     @Override
@@ -51,7 +67,7 @@ public class MediaService implements MediaServiceInterface {
     }
 
     @Override
-    public Optional<MediaResponseDTO> addMedia(String user_id,
+    public Optional<MediaEntity> addMedia(String user_id,
                                                String postId,
                                                String media_type,
                                                String media_content,
@@ -63,25 +79,28 @@ public class MediaService implements MediaServiceInterface {
         File destinationFile = new File(filePath);
         if(userFolder.exists() && postFolder.exists()) {
             file.transferTo(destinationFile); // Save the file
-            MediaRequestDTO mediaRequestDTO = MediaRequestDTO.builder()
+            System.out.println("Just before building the entity !");
+            MediaEntity mediatosave = MediaEntity.builder()
                     .postId(postId)
-                    .type(MediaType.valueOf((media_type)))
+                    .type(MediaTypeEnum.valueOf((media_type)))
                     .path(filePath)
                     .content(media_content)
                     .build();
-            return Optional.ofNullable(mediaMapper.toMediaResponseDTO(mediaRepository.save(mediaMapper.toMediaEntity(mediaRequestDTO))));
+            System.out.println(mediatosave.toString());
+            return Optional.of(mediaRepository.save(mediatosave));
         }
         else {
             boolean post_folder_created = postFolder.mkdirs();
             if(post_folder_created) {
                 file.transferTo(destinationFile); // Save the file
-                MediaRequestDTO mediaRequestDTO = MediaRequestDTO.builder()
+                MediaEntity mediatosave = MediaEntity.builder()
                         .postId(postId)
-                        .type(MediaType.valueOf((media_type)))
+                        .type(MediaTypeEnum.valueOf((media_type)))
                         .path(filePath)
                         .content(media_content)
                         .build();
-                return Optional.ofNullable(mediaMapper.toMediaResponseDTO(mediaRepository.save(mediaMapper.toMediaEntity(mediaRequestDTO))));
+                System.out.println(mediatosave.toString());
+                return Optional.of(mediaRepository.save(mediatosave));
             }else{
 
                 return Optional.empty();
@@ -117,9 +136,27 @@ public class MediaService implements MediaServiceInterface {
             return "Not found ";
         }
     }
-
     @Override
-    public ResponseEntity<MediaResponseDTO> getFile(MediaRequestDTO mediaRequestDTO) {
-    return null;
+    public ResponseEntity<Resource> getMediaFile(String id_media) {
+        MediaEntity mediaEntity =  mediaRepository.findById(id_media).orElse(null);
+
+        Path filePath = Paths.get(mediaEntity.getPath());
+
+
+        try {
+            Resource resource = new UrlResource(filePath.toUri());
+            if (resource.exists() && resource.isReadable()) {
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            }
+        } catch (Exception ignored) {
+            // Handle error for individual files
+            ignored.printStackTrace();
+
+        }
+        return ResponseEntity.notFound().build();
+
     }
 }
+
