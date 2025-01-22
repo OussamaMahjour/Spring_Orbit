@@ -1,9 +1,6 @@
 package com.faceboot.user_service.user_service.controller;
 
-import com.faceboot.user_service.user_service.dtos.PasswordUpdateDTO;
-import com.faceboot.user_service.user_service.dtos.UserCreateDTO;
-import com.faceboot.user_service.user_service.dtos.UserResponseDTO;
-import com.faceboot.user_service.user_service.dtos.UserUpdateDTO;
+import com.faceboot.user_service.user_service.dtos.*;
 import com.faceboot.user_service.user_service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
