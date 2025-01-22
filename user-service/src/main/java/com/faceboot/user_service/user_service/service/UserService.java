@@ -37,6 +37,17 @@ public class UserService {
         User saved = userRepository.save(user);
         return userMapper.userToUserResponseDto(saved);
     }
+    public UserResponseDTO getUserByEmail(String Email) {
+        User user = userRepository.findByEmail(Email)
+                .orElseThrow(() -> new RuntimeException("User with Email " + Email + " not found."));
+        return userMapper.userToUserResponseDto(user);
+    }
+    public Boolean checkCredentials(String email, String Password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User with Email " + email + " not found."));
+        return passwordEncoder.matches(Password, user.getPassword());
+    }
+
 
     public UserResponseDTO getUserById(Long id) {
         User user = userRepository.findById(id)
@@ -100,7 +111,7 @@ public class UserService {
     public UserResponseDTO updatePassword(Long id, PasswordUpdateDTO dto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User with ID " + id + " not found."));
-        if (dto.getNewPassword() == null || dto.getNewPassword().isBlank()) {
+        if (dto.getNewPassword() == null || dto.getNewPassword().isEmpty()) {
             throw new IllegalArgumentException("Password cannot be empty.");
         }
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));

@@ -24,6 +24,16 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> createUser(@RequestBody @Validated UserCreateDTO dto) {
         return ResponseEntity.ok(userService.createUser(dto));
     }
+    @GetMapping("/email/{email}")
+    public ResponseEntity<UserResponseDTO> getUserByEmail(@PathVariable String email) {
+        return ResponseEntity.ok(userService.getUserByEmail(email));
+    }
+    @PostMapping("/check-credentials")
+    public ResponseEntity<Boolean> checkCredentials(@RequestBody UserCheckPassword dto) {
+        return ResponseEntity.ok(userService.checkCredentials(dto.getEmail(), dto.getPassword()));
+    }
+
+
 
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
