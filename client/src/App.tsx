@@ -1,52 +1,48 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState } from 'react';
+import Layout from './components/Layout';
+import Feed from './components/Feed';
+import AuthCard from './components/AuthCard';
+import { AuthProvider, useAuth } from './context/AuthContext';
 
-import './App.css'
+const colors = {
+  dark: {
+    text: '#eff4eb',
+    background: '#0d1109',
+    primary: '#b5cea1',
+    secondary: '#37684c',
+    accent: '#76b7a3',
+  },
+  light: {
+    text: '#0d1109',
+    background: '#eff4eb',
+    primary: '#37684c',
+    secondary: '#b5cea1',
+    accent: '#76b7a3',
+  }
+};
 
-function App() {
-  const [isServerUp, setIsServerUp] = useState<boolean | null>(null); // `null` = unknown, `true` = up, `false` = down
-  const [loading, setLoading] = useState<boolean>(true); // To show a loading indicator while checking the server
+const AppContent = () => {
+  const [isDark, setIsDark] = useState(true);
+  const { user } = useAuth();
+  const currentTheme = isDark ? colors.dark : colors.light;
 
-  useEffect(() => {
-    // Function to check server status
-    const checkServerStatus = async () => {
-      try {
-        setLoading(true);
-        // Replace "/health" with the endpoint your server exposes for health checks
-        const response = await axios.get("http://localhost:8090/actuator/health");
-        if (response.status === 200) {
-          setIsServerUp(true);
-        } else {
-          setIsServerUp(false);
-        }
-      } catch (error) {
-        setIsServerUp(false); // Assume the server is down if there's an error
-      } finally {
-        setLoading(false); // Stop the loading state
-      }
-    };
+  if (!user) {
+    return <AuthCard theme={currentTheme} isDark={isDark} onToggleTheme={() => setIsDark(!isDark)} />;
+  }
 
-    // Initial check when the component mounts
-    checkServerStatus();
-
-    // Optionally, check server status every few seconds
-    const interval = setInterval(checkServerStatus, 5000); // Check every 5 seconds
-    return () => clearInterval(interval); // Cleanup on unmount
-  }, []);
-
-  // Render the status
   return (
-    <div>
-      {loading ? (
-        <p>Checking server status...</p>
-      ) : isServerUp === null ? (
-        <p>Unable to determine server status.</p>
-      ) : isServerUp ? (
-        <p style={{ color: "green" }}>The server is UP!</p>
-      ) : (
-        <p style={{ color: "red" }}>The server is DOWN!</p>
-      )}
-    </div>
+    <Layout theme={currentTheme} isDark={isDark} onToggleTheme={() => setIsDark(!isDark)}>
+      <Feed theme={currentTheme} />
+    </Layout>
   );
 };
-export default App
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}
+
+export default App;
