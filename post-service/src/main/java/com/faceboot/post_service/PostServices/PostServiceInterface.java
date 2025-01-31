@@ -16,7 +16,7 @@ public interface PostServiceInterface {
 
     List<PostResponseDTO> getPostsByUserId(Long userId);
 
-    PostResponseDTO addPost(String user_id, String postId, String media_type, String media_content,
+    PostResponseDTO addPost(Long user_id,  String media_type, String media_content,
                             MultipartFile file, String archived) throws IOException;
 
     String deletePost(String post_id);

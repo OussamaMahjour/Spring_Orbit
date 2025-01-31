@@ -4,6 +4,7 @@ import com.faceboot.media_service.MediaServices.MediaServiceInterface;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,40 +23,40 @@ public class MediaController {
         this.mediaService = mediaService;
     }
     @GetMapping("/all")
-    public List<Optional<MediaResponseDTO>> getAllMedia() {
+    public List<MediaResponseDTO> getAllMedia() {
         return mediaService.findAll();
     }
 
     @GetMapping("/post/{post_id}")
-    public List<Optional<MediaResponseDTO>> findPostMedia(@PathVariable String post_id) {
+    public List<MediaResponseDTO> findPostMedia(@PathVariable String post_id) {
         return mediaService.findByPostId(post_id);
 
     }
 
     @PostMapping("/upload")
-    public Optional<MediaResponseDTO> uploadPost(@RequestParam("user_id") String user_id,
+    public MediaResponseDTO uploadPost(@RequestParam("user_id") String user_id,
                                                  @RequestParam("post_id") String postId,
                                                  @RequestParam("type") String media_type,
                                                  @RequestParam("content") String media_content,
                                                  @RequestParam("media") MultipartFile file) throws IOException {
         return mediaService.addMedia(user_id, postId, media_type, media_content, file);
     }
-    @DeleteMapping("/delete/postid/{post_id}/{user_id}")
-    public String deletePostById(@PathVariable String post_id, @PathVariable String user_id) {
-        return mediaService.deleteBypostId(post_id, user_id);
+
+    @DeleteMapping("/delete/postid/{post_id}")
+    public ResponseEntity<String> deletePostById(@PathVariable String post_id) {
+        if(mediaService.deleteBypostId(post_id)){
+            return ResponseEntity.ok("media deleted successfully");
+        }
+        else{
+            return new ResponseEntity<>("coudn't delete media", HttpStatusCode.valueOf(400));
+        }
     }
 
-    /*
-    @DeleteMapping("/delete/userid/{userid}")
-    */
+
 
     @GetMapping("/{media}")
     public ResponseEntity<Resource> getMedia(@PathVariable String media) {
-        try{
-        Path mediaFile = Paths.get("/media/storage/User_1/Post_1");
-        Path filePath = mediaFile.resolve("9zbor.jpeg").normalize();
-        Resource resource = new UrlResource(filePath.toUri());
-
+       Resource resource = mediaService.getMediaPost(media);
         if (resource.exists()) {
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
@@ -63,9 +64,7 @@ public class MediaController {
         } else {
             return ResponseEntity.notFound().build();
         }
-    } catch (Exception ex) {
-        return ResponseEntity.internalServerError().build();
-    }
+
     }
 
 }

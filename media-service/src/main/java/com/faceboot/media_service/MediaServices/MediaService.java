@@ -6,7 +6,14 @@ import com.faceboot.media_service.MediaEntities.MediaEntity;
 import com.faceboot.media_service.MediaEntities.MediaType;
 import com.faceboot.media_service.MediaMapper.MediaMapperInterface;
 import com.faceboot.media_service.MediaRepositories.MediaRepository;
-import org.springframework.http.ResponseEntity;
+import com.faceboot.media_service.client.PostClient;
+import com.faceboot.media_service.client.UserClient;
+import com.faceboot.media_service.model.Post;
+import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,38 +27,43 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Component
+
 public class MediaService implements MediaServiceInterface {
     MediaRepository mediaRepository;
     MediaMapperInterface mediaMapper;
+    PostClient postClient;
+
     String uploadDir = new File("/media/storage").getAbsolutePath();
 
-    public MediaService(MediaRepository mediaRepository, MediaMapperInterface mediaMapper) {
+    public MediaService(MediaRepository mediaRepository, MediaMapperInterface mediaMapper, PostClient postClient) {
         this.mediaRepository = mediaRepository;
         this.mediaMapper = mediaMapper;
+        this.postClient = postClient;
     }
 
     @Override
-    public List<Optional<MediaResponseDTO>> findAll() {
+    public List<MediaResponseDTO> findAll() {
         List<MediaEntity> mediaList = mediaRepository.findAll();
-        List<Optional<MediaResponseDTO>> mediaResponseDTOList = new ArrayList<>();
+        List<MediaResponseDTO> mediaResponseDTOList = new ArrayList<>();
         for (MediaEntity mediaEntity : mediaList) {
-            mediaResponseDTOList.add(Optional.ofNullable(mediaMapper.toMediaResponseDTO(mediaEntity)));
+            mediaResponseDTOList.add(mediaMapper.toMediaResponseDTO(mediaEntity));
         }
         return mediaResponseDTOList;
     }
 
     @Override
-    public List<Optional<MediaResponseDTO>> findByPostId(String post_id) {
+    public List<MediaResponseDTO> findByPostId(String post_id) {
         List<MediaEntity> mediaList = mediaRepository.findAllByPostId(post_id);
-        List<Optional<MediaResponseDTO>> mediaResponseDTOList = new ArrayList<>();
+        List<MediaResponseDTO> mediaResponseDTOList = new ArrayList<>();
         for (MediaEntity mediaEntity : mediaList) {
-            mediaResponseDTOList.add(Optional.ofNullable(mediaMapper.toMediaResponseDTO(mediaEntity)));
+            mediaResponseDTOList.add(mediaMapper.toMediaResponseDTO(mediaEntity));
         }
         return mediaResponseDTOList;
     }
 
     @Override
-    public Optional<MediaResponseDTO> addMedia(String user_id,
+    public MediaResponseDTO addMedia(String user_id,
                                                String postId,
                                                String media_type,
                                                String media_content,
@@ -69,7 +81,7 @@ public class MediaService implements MediaServiceInterface {
                     .path(filePath)
                     .content(media_content)
                     .build();
-            return Optional.ofNullable(mediaMapper.toMediaResponseDTO(mediaRepository.save(mediaMapper.toMediaEntity(mediaRequestDTO))));
+            return mediaMapper.toMediaResponseDTO(mediaRepository.save(mediaMapper.toMediaEntity(mediaRequestDTO)));
         }
         else {
             boolean post_folder_created = postFolder.mkdirs();
@@ -81,10 +93,10 @@ public class MediaService implements MediaServiceInterface {
                         .path(filePath)
                         .content(media_content)
                         .build();
-                return Optional.ofNullable(mediaMapper.toMediaResponseDTO(mediaRepository.save(mediaMapper.toMediaEntity(mediaRequestDTO))));
+                return mediaMapper.toMediaResponseDTO(mediaRepository.save(mediaMapper.toMediaEntity(mediaRequestDTO)));
             }else{
 
-                return Optional.empty();
+                return null;
             }
         }
     }
@@ -92,11 +104,11 @@ public class MediaService implements MediaServiceInterface {
 
 
 
-    @Transactional
+
     @Override
-    public String deleteBypostId(String user_id, String post_id) {
-        //String uploadDir = new File("/media/storage").getAbsolutePath();
-        File userFolder = new File(this.uploadDir+"/User_"+user_id);
+    public boolean deleteBypostId(String post_id) {
+        Post post = postClient.getPostById(post_id);
+        File userFolder = new File(this.uploadDir+"/User_"+post.getUser().getId());
         File postFolder = new File(userFolder+"/Post_"+post_id);
         if(postFolder.exists()) {
             try{
@@ -107,19 +119,30 @@ public class MediaService implements MediaServiceInterface {
                 String[] path = {"/bin/sh", "-c", "rm -rf " + userFolder + "/Post_" + post_id}; //enable this if you
                 //wana add it to docker
                 Runtime.getRuntime().exec(path);
-                return deletedMedias+" rows Deleted successfully !";
+                return true;
             } catch (Exception e) {
                 e.printStackTrace();
-                return e.getMessage();
+                return false;
             }
         }
         else {
-            return "Not found ";
+            return false;
         }
     }
 
     @Override
-    public ResponseEntity<MediaResponseDTO> getFile(MediaRequestDTO mediaRequestDTO) {
-    return null;
+    public Resource getMediaPost(String id) {
+        try{
+            MediaEntity mediaEntity = mediaRepository.findById(id).orElse(null);
+            if(mediaEntity != null) {
+                Path mediaFile = Paths.get(mediaEntity.getPath());
+                return new UrlResource(mediaFile.toUri());
+            }
+                return null;
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+
     }
 }

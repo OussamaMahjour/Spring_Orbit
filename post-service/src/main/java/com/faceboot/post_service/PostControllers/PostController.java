@@ -35,14 +35,22 @@ public class PostController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<PostResponseDTO> addPost(@RequestParam("user_id") String user_id,
-                                   @RequestParam("post_id") String postId,
+    public ResponseEntity<PostResponseDTO> addPost(@RequestParam("user_id") Long user_id,
+
                                    @RequestParam("type") String media_type,
                                    @RequestParam("content") String media_content,
                                    @RequestParam("media") MultipartFile file,
                                    @RequestParam("archived") String archived) throws IOException {
 
-        return ResponseEntity.ok().body(postService.addPost(user_id,postId,media_type,media_content, file, archived));
+        System.out.println(user_id);
+        return ResponseEntity.ok()
+                .body(
+                postService.addPost(
+                        user_id,
+                        media_type,
+                        media_content,
+                        file,
+                        archived));
 
     }
 

@@ -1,5 +1,6 @@
 package com.faceboot.user_service.user_service.service;
 
+import com.faceboot.user_service.user_service.client.PostClient;
 import com.faceboot.user_service.user_service.dtos.PasswordUpdateDTO;
 import com.faceboot.user_service.user_service.dtos.UserCreateDTO;
 import com.faceboot.user_service.user_service.dtos.UserResponseDTO;
@@ -10,6 +11,7 @@ import com.faceboot.user_service.user_service.model.User;
 import com.faceboot.user_service.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -22,9 +24,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserService {
 
+
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     private final UserMapper userMapper;
+
+    private final PostClient postClient;
 
     public UserResponseDTO createUser(UserCreateDTO dto) {
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
@@ -77,13 +82,17 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User with ID " + id + " not found."));
         user.setDeletedAt(LocalDateTime.now());
         userRepository.save(user);
+        postClient.deletePostByUserId(user.getId());
     }
     public void deleteUsersPermanentlyAfter30Days() {
         LocalDateTime thresholdDate = LocalDateTime.now().minusDays(30);
         List<User> usersToDelete = userRepository.findAllByDeletedAtBefore(thresholdDate);
         if (!usersToDelete.isEmpty()) {
             log.info("Deleting {} users permanently", usersToDelete.size());
+            for( User user:usersToDelete)postClient.deletePostByUserId(user.getId());
             userRepository.deleteAll(usersToDelete);
+
+
         } else {
             log.info("No users found for permanent deletion.");
         }

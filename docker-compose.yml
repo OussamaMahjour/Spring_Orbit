@@ -7,12 +7,10 @@ services:
     build:
       context: ./user-service 
       dockerfile: ../docker/spring-boot/Dockerfile
-    # volumes:
-    #   - ./user-service:/app
     ports:
       - 8090:8080
     healthcheck:
-      test: [ "CMD","curl","-f", "http://localhost:8080/actuator/health" ]
+      test: [ "CMD","curl","-f", "http://localhost:8080/health" ]
       interval:  15s
       retries:  6
     environment:
@@ -40,20 +38,19 @@ services:
 
 
 
-#  authentification-service:
-#    container_name: authentification-service
-#    build:
-#      context: ./authentification-service
-#      dockerfile: ../docker/spring-boot/Dockerfile
-#    # volumes:
-#    #   - ./authentification-service:/app
-#    ports:
-#      - 8081:8080
-#    healthcheck:
-#      test: [ "CMD","curl","-f", "http://localhost:8081/actuator/health" ]
-#      interval:  10s
-#      retries:  4
-#
+  authentification-service:
+    container_name: authentification-service
+    build:
+      context: ./authentification-service
+      dockerfile: ../docker/spring-boot/Dockerfile
+
+    ports:
+      - 8081:8080
+    healthcheck:
+      test: [ "CMD","curl","-f", "http://localhost:8080/actuator/health" ]
+      interval:  10s
+      retries:  4
+
 #    depends_on:
 #      - authentification-db
 
@@ -73,8 +70,6 @@ services:
     build:
       context: ./discovery-service 
       dockerfile: ../docker/spring-boot/Dockerfile
-    # volumes:
-    #   - ./discovery-service:/app
     ports:
       - 8082:8080
     expose:
@@ -91,8 +86,6 @@ services:
     build:
       context: ./config-service 
       dockerfile: ../docker/spring-boot/Dockerfile
-    # volumes:
-    #   - ./config-service:/app
     ports:
       - 8083:8080
     expose:
@@ -114,8 +107,6 @@ services:
     build:
       context: ./gateway-service 
       dockerfile: ../docker/spring-boot/Dockerfile
-    # volumes:
-    #   - ./gateway-service:/app
     ports:
       - 8084:8080
     expose:
@@ -138,8 +129,6 @@ services:
     build:
       context: ./comment-service 
       dockerfile: ../docker/spring-boot/Dockerfile
-    # volumes:
-    #   - ./comment-service:/app
     ports:
       - 8085:8080
     expose:
@@ -147,7 +136,7 @@ services:
     healthcheck:
       test: [ "CMD","curl","-f", "http://localhost:8080/actuator/health" ]
       interval:  10s
-      retries:  4
+      retries:  10
 
     environment:
         - DISCOVERY_SERVICE_URL=http://discovery-service:8080/eureka
@@ -180,8 +169,6 @@ services:
     build:
       context: ./notification-service
       dockerfile: ../docker/spring-boot/Dockerfile
-    # volumes:
-    #   - ./notification-service:/app
     ports:
       - 8086:8080
     healthcheck:
@@ -245,33 +232,35 @@ services:
 
 
 
-#  post-service:
-#    container_name: post-service
-#    build:
-#      context: ./post-service
-#      dockerfile: ../docker/spring-boot/Dockerfile
-#    # volumes:
-#    #   - ./post-service:/app
-#    ports:
-#      - 8087:8080
-#    healthcheck:
-#      test: [ "CMD","curl","-f", "http://localhost:8087/actuator/health" ]
-#      interval:  10s
-#      retries:  4
-#    depends_on:
-#      - post-db
-#
-#  post-db:
-#    image: mvertes/alpine-mongo
-#    container_name: post-db
-#    volumes:
-#      - ./storage/post-db:/data/db
-#    restart: always
-#    environment:
-#      MONGO_INITDB_ROOT_PASSWORD: root
-#    ports:
-#      - "27017:27017"
-#
+  post-service:
+    container_name: post-service
+    build:
+      context: ./post-service
+      dockerfile: ../docker/spring-boot/Dockerfile
+    ports:
+      - 8087:8080
+    healthcheck:
+      test: [ "CMD","curl","-f", "http://localhost:8080/actuator/health" ]
+      interval:  10s
+      retries:  4
+    depends_on:
+      - post-db
+
+  post-db:
+    image: mongo:7.0.5
+    container_name: post-db
+    volumes:
+      - ./storage/post-db:/data/db
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: post
+    ports:
+      - "27019:27017"
+    expose:
+      - "27017"
+
 
 
 #  security-service:
@@ -301,7 +290,7 @@ services:
     healthcheck:
       test: [ "CMD","curl","-f", "http://localhost:8080/actuator/health" ]
       interval:  10s
-      retries: 4
+      retries: 10
     environment:
       - DISCOVERY_SERVICE_URL=http://discovery-service:8080/eureka
       - CONFIG_SERVICE_URL=http://config-service:8080
