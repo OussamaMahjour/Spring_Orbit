@@ -47,10 +47,12 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User with Email " + Email + " not found."));
         return userMapper.userToUserResponseDto(user);
     }
-    public Boolean checkCredentials(String email, String Password) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User with Email " + email + " not found."));
-        return passwordEncoder.matches(Password, user.getPassword());
+    public Boolean checkCredentials(String email, String password) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isEmpty()) {
+            return false;
+        }
+        return passwordEncoder.matches(password, user.get().getPassword());
     }
 
 
