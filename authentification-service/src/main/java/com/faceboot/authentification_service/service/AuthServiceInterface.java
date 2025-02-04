@@ -9,10 +9,9 @@ import org.springframework.stereotype.Service;
 
 public interface AuthServiceInterface {
 
-    boolean login(UserCheckCredentialsDTO userCheckCredentialsDTO);
+    public User login(UserCheckCredentialsDTO userCheckCredentialsDTO);
 
     public User register(UserRequestDTO userRequestDTO);
-    public ResponseEntity<String> createUser(UserRequestDTO userDto);
-    public String getAdminToken();
+
 
 }
