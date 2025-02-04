@@ -28,7 +28,7 @@ const Post: React.FC<Props> = ({
 }) => {
   const [mediaResponse, setMediaResponse] = useState<Media[]>([]);
   useEffect(() => {
-    axios.get("http://192.168.13.197:8084/MEDIA-SERVICE/media/post/"+postId)
+    axios.get("http://localhost:8084/MEDIA-SERVICE/media/post/"+postId)
       .then(response => {
         setMediaResponse(response.data);
         //console.log("Fetched posts:", response.data); // Log response directly
@@ -69,7 +69,7 @@ const Post: React.FC<Props> = ({
         <h3 className="text-lg font-bold mb-2">{(mediaResponse.length > 0 ? mediaResponse[0].content:"")}</h3>
         {contentUrl && (
           <img
-            src={"http://192.168.13.197:8084/MEDIA-SERVICE/media/"+(mediaResponse.length > 0 ? mediaResponse[0].id:"")}
+            src={"http://localhost:8084/MEDIA-SERVICE/media/"+(mediaResponse.length > 0 ? mediaResponse[0].id:"")}
             
             alt="Post content"
             className="w-full rounded-lg mb-2"
