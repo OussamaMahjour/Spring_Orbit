@@ -24,7 +24,7 @@ const Header:React.FC = () => {
             <svg fill="currentColor" height="20" icon-name="add-outline" viewBox="0 0 20 20" width="20" xmlns="http://www.w3.org/2000/svg">
       <path d="M19 9.375h-8.375V1h-1.25v8.375H1v1.25h8.375V19h1.25v-8.375H19v-1.25Z"></path>
     </svg>
-                <h1>Create</h1>
+                <Link to="/add"><h1>Create</h1></Link>
             </div>
             <i className="fa-solid fa-inbox cursor-pointer"></i>
             <Link  to="/profile"><img className="rounded-full overflow-hidden h-7 w-7 bg-black cursor-pointer"/></Link>
