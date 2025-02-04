@@ -10,7 +10,7 @@ public class AuthentificationServiceApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(AuthentificationServiceApplication.class, args);
-		System.out.println("test");
+
 	}
 
 }

@@ -29,6 +29,10 @@ const Header:React.FC = () => {
             <i className="fa-solid fa-inbox cursor-pointer"></i>
             <Link  to="/profile"><img className="rounded-full overflow-hidden h-7 w-7 bg-black cursor-pointer"/></Link>
             
+
+
+
+
         </div>
 
     </div>

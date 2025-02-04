@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import AuthView from "./AuthViews";
+import axios from "axios";
+import User from "../../../Entities/User";
 
 
 
@@ -21,6 +24,22 @@ interface Props {
 
 
 </div>
+}
+
+function login() {
+  const [userInfo, setUserInfo] = useState<User>();
+  useEffect(() => {
+    axios.get("http://192.168.13.197:8084/AUTH-SERVICE/media/post/"+postId)
+      .then(response => {
+        setMediaResponse(response.data);
+        //console.log("Fetched posts:", response.data); // Log response directly
+      })
+      .catch(error => {
+        console.error("Error fetching posts:", error);
+
+      });
+
+  }, []);
 }
 
 

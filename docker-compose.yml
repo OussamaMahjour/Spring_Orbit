@@ -78,20 +78,10 @@ services:
       test: [ "CMD","curl","-f", "http://localhost:8080/actuator/health" ]
       interval:  10s
       retries:  4
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery-service:8080/eureka
+      - CONFIG_SERVICE_URL=http://config-service:8080
 
-#    depends_on:
-#      - authentification-db
-
-
-#  authentification-db:
-#    container_name: authentification-db
-#    image: redis:7.4.1-alpine
-#    ports:
-#      - "6379:6379"
-#    volumes:
-#      - ./storage/authentification-db:/data
-#    restart: always
-    
 
   discovery-service:
     container_name: discovery-service
