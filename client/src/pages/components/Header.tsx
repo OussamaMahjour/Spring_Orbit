@@ -1,6 +1,17 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
+import Cookies from 'js-cookie';
+
+
 
 const Header:React.FC = () => {
+    const navigate = useNavigate();
+
+
+    function logout(){
+        Cookies.remove('user');
+        
+        navigate("/login");
+    }
     return <div className="w-full h-14  flex px-5 justify-around border-b border-[#00000022]">
         <Link to="/"  className="w-1/5 flex justify-start items-center cursor-pointer">
             
@@ -18,7 +29,7 @@ const Header:React.FC = () => {
                 </div>
 
         </div>
-        <div className="w-1/5 text-2xl justify-end pr-3 gap-5 flex items-center">
+        <div className="w-1/5 text-2xl justify-end  gap-4 flex items-center">
             <i className="fa-regular fa-bell cursor-pointer"></i>
             <div className="flex text-lg justify-center items-center gap-1 cursor-pointer">
             <svg fill="currentColor" height="20" icon-name="add-outline" viewBox="0 0 20 20" width="20" xmlns="http://www.w3.org/2000/svg">
@@ -28,7 +39,7 @@ const Header:React.FC = () => {
             </div>
             <i className="fa-solid fa-inbox cursor-pointer"></i>
             <Link  to="/profile"><img className="rounded-full overflow-hidden h-7 w-7 bg-black cursor-pointer"/></Link>
-            
+            <i className="fa-solid cursor-pointer fa-arrow-right-from-bracket" onClick={logout}></i>
         </div>
 
     </div>

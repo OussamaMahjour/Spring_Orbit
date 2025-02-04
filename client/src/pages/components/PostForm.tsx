@@ -39,7 +39,7 @@ const PostForm: React.FC = () => {
 
     try {
       const response = await axios.post(
-        "http://192.168.13.197:8084/POST-SERVICE/post/add",
+        "http://localhost:8084/POST-SERVICE/post/add",
         data,
         {
           headers: {

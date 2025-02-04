@@ -15,7 +15,7 @@ const Home = () => {
 
   useEffect(() => {
     start(); // Start loading bar when request begins
-    axios.get("http://192.168.13.197:8084/POST-SERVICE/post/all")
+    axios.get("http://localhost:8084/POST-SERVICE/post/all")
       .then(response => {
         setPostsResponse(response.data);
         //console.log("Fetched posts:", response.data); // Log response directly
@@ -36,7 +36,7 @@ const Home = () => {
       <Header />
       <div className="flex-1 min-h-0 flex w-full">
         <Sidebar />
-        <div className="w-3/5 h-full overflow-scroll">
+        <div className="w-3/5 h-full px-19 flex flex-col gap-3 pt-3 overflow-scroll">
           {postsResponse.length > 0 ? (
             postsResponse.map((post) => (
               <Post

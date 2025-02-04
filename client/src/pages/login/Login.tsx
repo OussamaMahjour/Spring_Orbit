@@ -14,7 +14,7 @@ const Login: React.FC = () => {
     setError(""); // Clear previous error
 
     try {
-      const response = await axios.post("http://192.168.13.197:8081/auth/login", {
+      const response = await axios.post("http://localhost:8084/AUTHENTIFICATION-SERVICE/auth/login", {
         email,
         password,
       });
