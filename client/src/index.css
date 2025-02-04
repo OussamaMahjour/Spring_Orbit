@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+#root{
+  min-height: 100vh;
+  width: 100vw;
+}
+.log-background{
+  mask-image: url('https://www.redditstatic.com/shreddit/assets/account/standalone-auth-bg.svg');
+   mask-size: cover; 
+   mask-type:luminance; 
+ 
+}
