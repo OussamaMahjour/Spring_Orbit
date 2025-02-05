@@ -9,6 +9,7 @@ import Profile from './pages/profile/Profile'
 import UploadingPost from './pages/uploadingPost/UploadingPost'
 import PostForm from './pages/components/PostForm'
 import PostPage from './pages/components/PostPage'
+import Register from './pages/login/Register'
 
 
 
@@ -33,6 +34,10 @@ const router = createBrowserRouter([
   {
     path:"/post/:id",
     element:<PostPage />
+  },
+  {
+    path:"/register",
+    element:<Register />
   }
 
 ])

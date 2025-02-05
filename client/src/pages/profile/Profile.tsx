@@ -2,13 +2,76 @@ import { Link } from "react-router-dom";
 import Header from "../components/Header";
 import Sidebar from "../components/SideBar";
 import Comment from "../components/Comment";
+import { useEffect, useState } from "react";
 
-interface Props {
-    
+import axios from "axios";
+import Cookies from 'js-cookie';
+
+interface Post {
+  id: number;
+  owner: string;
+  header: string;
+  content: string;
+  votes: number;
+  createdAt: Date;
+}
+
+// Mock data for testing
+const mockPosts: Post[] = [
+  {
+    id: 1,
+    owner: "john_doe",
+    header: "First Post",
+    content: "This is my first post on SpringOrbit! Really excited to share my thoughts here.",
+    votes: 42,
+    createdAt: new Date("2024-03-15T10:30:00")
+  },
+  {
+    id: 2,
+    owner: "john_doe",
+    header: "Learning Spring Boot",
+    content: "Just finished building my first microservice with Spring Boot. The journey has been amazing!",
+    votes: 28,
+    createdAt: new Date("2024-03-14T15:45:00")
+  },
+  {
+    id: 3,
+    owner: "john_doe",
+    header: "React + Spring Boot",
+    content: "Here's how I integrated my React frontend with Spring Boot backend. #webdev #java #react",
+    votes: 35,
+    createdAt: new Date("2024-03-13T09:20:00")
   }
+];
 
-const Profile:React.FC<Props> =  () => {
-    return <div className="w-screen h-screen max-h-screen flex flex-col">
+const Profile: React.FC = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
+
+  useEffect(() => {
+    
+  
+    
+   
+    const fetchPosts = async () => {
+      try {
+        const userId = Cookies.get('user');
+        if (!userId) {
+          console.error('No user ID found');
+          return;
+        }
+        const response = await axios.get(`http://localhost:8084/POST-SERVICE/post/user/${userId}`);
+        console.log(`http://localhost:8084/POST-SERVICE/post/user/${userId}`)
+        setPosts(response.data)
+      } catch (error) {
+        console.error('Error fetching posts:', error);
+      }
+    };
+
+    fetchPosts();
+    
+  }, []);
+
+  return <div className="w-screen h-screen max-h-screen flex flex-col">
     <Header />
     {/* This div takes the remaining height after the header */}
     <div className="flex-1 min-h-0  flex w-full">
@@ -37,76 +100,22 @@ const Profile:React.FC<Props> =  () => {
                 </div>
             </div>
             <div className="flex-1  w-full">
-                
-                <Comment 
-                postOwner={"oussama"} 
-                commenter={"omar"} 
-                time={new Date()} 
-                header={"new car"} 
-                votes={20}
-                content="Nice Car"                
-                />
-                <Comment 
-                postOwner={"oussama"} 
-                commenter={"moktar"} 
-                time={new Date()} 
-                header={"Finishing Project"} 
-                votes={30}
-                content="Congratulation"                
-                />
-                <Comment 
-                postOwner={"oussama"} 
-                commenter={"oussama"} 
-                time={new Date()} 
-                header={"we did it "} 
-                votes={120}
-                content="yes we did"                
-                />
-                <Comment 
-                postOwner={"oussama"} 
-                commenter={"omar"} 
-                time={new Date()} 
-                header={"new car"} 
-                votes={20}
-                content="this the content"                
-                />
-                <Comment 
-                postOwner={"oussama"} 
-                commenter={"omar"} 
-                time={new Date()} 
-                header={"new car"} 
-                votes={20}
-                content="this the content"                
-                />
-                <button id="dropdownDefaultButton" data-dropdown-toggle="dropdown" className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center inline-flex items-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800" type="button">Dropdown button <svg className="w-2.5 h-2.5 ms-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 10 6">
-<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
-</svg>
-</button>
-
-
-<div id="dropdown" className="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-700">
-    <ul className="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="dropdownDefaultButton">
-      <li>
-        <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Dashboard</a>
-      </li>
-      <li>
-        <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Settings</a>
-      </li>
-      <li>
-        <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Earnings</a>
-      </li>
-      <li>
-        <a href="#" className="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Sign out</a>
-      </li>
-    </ul>
-</div>
+                {posts.map((post) => (
+                  <Comment 
+                    key={post.id}
+                    postOwner={post.owner}
+                    commenter={post.owner}
+                    time={new Date}
+                    header={post.header}
+                    votes={post.votes}
+                    content={post.content}
+                  />
+                ))}
             </div>
       </div>
       <div className="w-1/5 h-full overflow-scroll bg-gray-200">
             
       </div>
-      
-      
     </div>
   </div>
 }
