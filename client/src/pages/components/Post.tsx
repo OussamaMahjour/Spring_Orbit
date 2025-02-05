@@ -4,6 +4,9 @@ import Media from "../../Entities/Media";
 
 import axios from "axios";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Comment from "../../Entities/Comment";
+import CommentEntity from "../../Entities/Comment";
 
 interface Props {
   postOwner: string;
@@ -12,7 +15,7 @@ interface Props {
   header: string;
   votes: number;
   contentUrl: string;
-  comments: Array<React.FC>;
+  comments: CommentEntity[];
   postId:string;
 }
 
@@ -40,8 +43,21 @@ const Post: React.FC<Props> = ({
 
   }, []);
   console.log(mediaResponse);
+  const navigate = useNavigate();
+  const [commentResponse, setCommentResponse] = useState<Comment[]>([]);
+  useEffect(() => {
+    axios.get("http://localhost:8084/COMMENT-SERVICE/media/post/"+postId)
+      .then(response => {
+        setCommentResponse(response.data);
+      })
+      .catch(error => {
+        console.error("Error fetching posts:", error);
+
+      });
+
+  }, []);
   return (
-    <div className="w-full flex border-b border-gray-300 p-4 bg-white rounded-lg shadow-sm">
+    <div className="w-full cursor-pointer  flex border-b border-gray-300 p-4 bg-white rounded-lg shadow-sm" onClick={()=>{navigate("/post/"+postId)}}>
       {/* Voting Section */}
       <div className="flex flex-col items-center mr-4">
         <button className="text-gray-500 hover:text-red-500">

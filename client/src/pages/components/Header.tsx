@@ -15,7 +15,7 @@ const Header:React.FC = () => {
     return <div className="w-full h-14  flex px-5 justify-around border-b border-[#00000022]">
         <Link to="/"  className="w-1/5 flex justify-start items-center cursor-pointer">
             
-            <img src="./logo.png" className="h-11  cursor-pointer"/>
+            <img src="/logo.png" className="h-11  cursor-pointer"/>
                 <h1 className="text-xl ">
                     <span className="text-[#586858]">Spring</span>
                     <span className="text-[#8ead9e]">Orbit</span>
